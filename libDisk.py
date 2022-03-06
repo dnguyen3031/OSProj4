@@ -37,7 +37,7 @@ def openDisk(filename, nBytes):
             f = open(filename, "w+")
             b_array = bytearray(nBytes)
         else:
-            b_array = getByteArray(filename)
+            b_array = getByteArray(filename, nBytes)
             f = open(filename, "r+")
         disks[len(disks)] = {'file': f, 'nBytes': nBytes, 'contents': b_array}
 
