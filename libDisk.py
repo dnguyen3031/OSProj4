@@ -55,8 +55,7 @@ def readBlock(disk, bNum, block):
     if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk].nBytes:
         return -1
 
-    disks[disk].file.seek(bNum*BLOCKSIZE)
-    return bytearray(disks[disk].file.read(BLOCKSIZE))
+    return disks[disk].contents[bNum*BLOCKSIZE:(bNum + 1) * BLOCKSIZE]
 
 
 # writeBlock() takes disk number ‘disk’ and logical block number ‘bNum’ and writes the content of the buffer ‘block’
@@ -71,8 +70,8 @@ def writeBlock(disk, bNum, block):
     if disk not in disks.keys() or (bNum + 1) * BLOCKSIZE > disks[disk].nBytes:
         return -1
 
-    disks[disk].file.seek(bNum * BLOCKSIZE)
-    return bytearray(disks[disk].file.read(BLOCKSIZE))
+    disks[disk].contents = disks[disk].contents[:bNum*BLOCKSIZE] + block + disks[disk].contents[(bNum+1)*BLOCKSIZE:]
+    return 0
 
 
 # closeDisk() takes a disk number ‘disk’ and makes the disk closed to further I/O; i.e. any subsequent reads or
