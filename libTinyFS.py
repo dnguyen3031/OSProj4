@@ -4,7 +4,7 @@ from libDisk import openDisk, writeBlock, readBlock, closeDisk
 # -1 = failed to open disk
 # -2 = attempted to mount an already mounted disk
 # -3 = disk not formatted to mount TinyFS
-# -4 = no currently mounted disk
+# -4 = no mounted file system
 # -5 = attempted to close non-open file
 
 BLOCKSIZE = 256
@@ -135,6 +135,10 @@ def tfs_openFile(name):
 # Closes the file, de-allocates all system/disk resources, and removes table entry
 def tfs_closeFile(FD):
     global open_files
+    global disk_num
+
+    if disk_num < 0:
+        return -4
 
     if FD not in open_files.keys():
         return -5
