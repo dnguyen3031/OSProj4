@@ -1,5 +1,8 @@
+import os.path
+
 BLOCKSIZE = 256
 nBytes = 0
+disk = {}
 
 # This function opens a regular UNIX file and designates the first nBytes of it as space for the emulated disk.
 # nBytes should be a number that is evenly divisible by the block size. If nBytes > 0 and there is already a file by
@@ -7,7 +10,13 @@ nBytes = 0
 # an existing disk is opened, and should not be overwritten. There is no requirement to maintain integrity of any
 # content beyond nBytes. Errors must be returned for any other failures, as defined by your own error code system.
 def openDisk(filename, nBytes):
-    pass
+    if nBytes == 0:
+        if os.path.exists(filename):
+            pass
+        else:
+            return -1 #error of file
+    else:
+
 
 
 # readBlock() reads an entire block of BLOCKSIZE bytes from the open disk (identified by ‘disk’) and copies the
