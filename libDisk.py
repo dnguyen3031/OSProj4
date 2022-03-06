@@ -17,11 +17,16 @@ disks = {
 def openDisk(filename, nBytes):
     if nBytes == 0:
         if os.path.exists(filename):
-            pass
+            f = open(filename, "r+")
+            disks[len(disks)] = {'file': f, 'nBytes': os.path.getsize(filename)}
         else:
             return -1 #error of file
     else:
-
+        if not os.path.exists(filename):
+            f = open(filename, "w+")
+        else:
+            f = open(filename, "r+")
+        disks[len(disks)] = {'file': f, 'nBytes': nBytes}
 
 
 # readBlock() reads an entire block of BLOCKSIZE bytes from the open disk (identified by ‘disk’) and copies the
