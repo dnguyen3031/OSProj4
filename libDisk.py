@@ -4,6 +4,7 @@ BLOCKSIZE = 256
 disks = {
     # 1: {
     #     'file_name': some file,
+    #     'contents': some byte array
     #     'nBytes': 1
     # }
 }
@@ -39,12 +40,11 @@ def readBlock(disk, bNum, block):
     global BLOCKSIZE
     global disks
 
-    if disk not in disks.keys() :
+    if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk].nBytes:
         return -1
 
-    disks[disk].seek(bNum*BLOCKSIZE)
-
-    return
+    disks[disk].file.seek(bNum*BLOCKSIZE)
+    return bytearray(disks[disk].file.read(BLOCKSIZE))
 
 
 # writeBlock() takes disk number ‘disk’ and logical block number ‘bNum’ and writes the content of the buffer ‘block’
@@ -53,7 +53,14 @@ def readBlock(disk, bNum, block):
 # the file. On success, it returns 0. Errors must be returned if ‘disk’ is not available (i.e. hasn’t been opened) or
 # for any other failures, as defined by your own error code system.
 def writeBlock(disk, bNum, block):
-    pass
+    global BLOCKSIZE
+    global disks
+
+    if disk not in disks.keys() or (bNum + 1) * BLOCKSIZE > disks[disk].nBytes:
+        return -1
+
+    disks[disk].file.seek(bNum * BLOCKSIZE)
+    return bytearray(disks[disk].file.read(BLOCKSIZE))
 
 
 # closeDisk() takes a disk number ‘disk’ and makes the disk closed to further I/O; i.e. any subsequent reads or
