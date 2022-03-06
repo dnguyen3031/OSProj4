@@ -1,8 +1,13 @@
 import os.path
 
 BLOCKSIZE = 256
-nBytes = 0
-disk = {}
+disks = {
+    # 1: {
+    #     'file_name': some file,
+    #     'nBytes': 1
+    # }
+}
+
 
 # This function opens a regular UNIX file and designates the first nBytes of it as space for the emulated disk.
 # nBytes should be a number that is evenly divisible by the block size. If nBytes > 0 and there is already a file by
@@ -26,7 +31,15 @@ def openDisk(filename, nBytes):
 # into the disk. On success, it returns 0. Errors must be returned if ‘disk’ is not available (i.e. hasn’t been
 # opened) or for any other failures, as defined by your own error code system.
 def readBlock(disk, bNum, block):
-    pass
+    global BLOCKSIZE
+    global disks
+
+    if disk not in disks.keys() :
+        return -1
+
+    disks[disk].seek(bNum*BLOCKSIZE)
+
+    return
 
 
 # writeBlock() takes disk number ‘disk’ and logical block number ‘bNum’ and writes the content of the buffer ‘block’
