@@ -1,3 +1,6 @@
+BLOCKSIZE = 256
+nBytes = 0
+
 # This function opens a regular UNIX file and designates the first nBytes of it as space for the emulated disk.
 # nBytes should be a number that is evenly divisible by the block size. If nBytes > 0 and there is already a file by
 # the given filename, that disk is resized to nBytes, and that file’s contents may be overwritten. If nBytes is 0,
