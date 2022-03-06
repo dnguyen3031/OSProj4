@@ -1,4 +1,28 @@
-from libDisk import openDisk
+from libDisk import openDisk, writeBlock, readBlock
+
+# error codes:
+# -1 = failed to open disk
+
+BLOCKSIZE = 256
+magic_num = 45
+
+# super block layout
+# 0: 1
+# 1: 45
+# 2: first free block in linked list of free blocks
+# 4: first inode in linked list of free inodes
+
+# inode block layout
+# 0: 2
+# 1: 45
+# 2: next inode in linked list of inodes
+# 4: first file extent block in linked list of file extent blocks
+# 6-13: file name
+# 14-: length of file
+
+file extent block layout
+0: 3
+1:
 
 
 # Makes a blank TinyFS file system of size nBytes on the file specified by ‘filename’. This function should use the
@@ -6,7 +30,45 @@ from libDisk import openDisk
 # initializing all data to 0x00, setting magic numbers, initializing and writing the superblock and inodes,
 # etc. Must return a specified success/error code.
 def tfs_mkfs(filename, nBytes):
-    openDisk(filename, nBytes)
+    global BLOCKSIZE
+
+    file_num = openDisk(filename, nBytes)
+    if file_num < 0:
+        return -1
+
+    create_super_block(file_num)
+    for i in range(1, nBytes/BLOCKSIZE):
+        free_block(file_num, i)
+
+
+def create_super_block(file_num):
+    global BLOCKSIZE
+    global magic_num
+
+    out = bytearray(BLOCKSIZE)
+    out[0] = 1
+    out[1] = magic_num
+    out[2] = 1
+
+    writeBlock(file_num, 0, out)
+
+
+def free_block(file_num, i):
+    global BLOCKSIZE
+    global magic_num
+
+    super_b = readBlock(file_num, 0)
+    first_free = super_b[2]
+
+    new_free = bytearray(BLOCKSIZE)
+    new_free[0] = 4
+    new_free[1] = magic_num
+    new_free[2] = first_free
+
+    writeBlock(file_num, i, new_free)
+
+    super_b[2] = i
+    writeBlock(file_num, 0, super_b)
 
 
 

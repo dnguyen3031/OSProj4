@@ -53,7 +53,7 @@ def openDisk(filename, nBytes):
 # bNum=0 is the very first byte of the file. bNum=1 is BLOCKSIZE bytes into the disk, bNum=n is n*BLOCKSIZE bytes
 # into the disk. On success, it returns 0. Errors must be returned if ‘disk’ is not available (i.e. hasn’t been
 # opened) or for any other failures, as defined by your own error code system.
-def readBlock(disk, bNum, block):
+def readBlock(disk, bNum, block=None):
     global BLOCKSIZE
     global disks
 
