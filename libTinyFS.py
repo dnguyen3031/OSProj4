@@ -20,9 +20,16 @@ magic_num = 45
 # 6-13: file name
 # 14-: length of file
 
-file extent block layout
-0: 3
-1:
+# file extent block layout
+# 0: 3
+# 1: 45
+# 2: next file extent block in linked list of file extent blocks
+# 4-: data
+
+# free block layout
+# 0: 4
+# 1: 45
+# 2: next free block in linked list of free blocks
 
 
 # Makes a blank TinyFS file system of size nBytes on the file specified by ‘filename’. This function should use the
