@@ -129,7 +129,27 @@ def tfs_unmount():
 # for the file, and returns a file descriptor (integer) that can be used to reference this file while the filesystem
 # is mounted.
 def tfs_openFile(name):
-    pass
+    global BLOCKSIZE
+    global magic_num
+    global open_files
+    global disk_num
+
+    super_block = readBlock(disk_num, 0)
+
+    key = super_block[4]
+    currNode = readBlock(disk_num, super_block[4])
+    currNode.seek(6)
+    node_name = currNode.read(8).decode("utf-8")
+
+    while name != node_name and not currNode[2] == 0:
+        key = currNode[2]
+        currNode = readBlock(disk_num, currNode[2])
+        currNode.seek(6)
+        node_name = currNode.read(8).decode("utf-8")
+
+
+    open_files[key] = 0
+    return key
 
 
 # Closes the file, de-allocates all system/disk resources, and removes table entry
