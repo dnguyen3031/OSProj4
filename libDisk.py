@@ -60,4 +60,6 @@ def writeBlock(disk, bNum, block):
 # writes to a closed disk should return an error. Closing a disk should also close the underlying file, committing
 # any writes being buffered by the real OS.
 def closeDisk(disk):
-    pass
+    dDisk = disks[disk]
+    dDisk[disk].close()
+    del disks[disk]
