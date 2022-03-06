@@ -1,4 +1,5 @@
 import os.path
+import codecs
 
 BLOCKSIZE = 256
 disks = {
@@ -15,19 +16,30 @@ disks = {
 # the given filename, that disk is resized to nBytes, and that file’s contents may be overwritten. If nBytes is 0,
 # an existing disk is opened, and should not be overwritten. There is no requirement to maintain integrity of any
 # content beyond nBytes. Errors must be returned for any other failures, as defined by your own error code system.
+def getByteArray(filename, nBytes):
+    f = open(filename, 'rb')
+    frame = f.read(nBytes)
+    clean = codecs.encode(bytes(frame), 'hex').decode("utf-8").upper()
+    f.close()
+
+    return clean
+
 def openDisk(filename, nBytes):
     if nBytes == 0:
         if os.path.exists(filename):
+            b_array = getByteArray(filename, nBytes)
             f = open(filename, "r+")
-            disks[len(disks)] = {'file': f, 'nBytes': os.path.getsize(filename)}
+            disks[len(disks)] = {'file': f, 'nBytes': os.path.getsize(filename), 'contents': b_array}
         else:
             return -1 #error of file
     else:
         if not os.path.exists(filename):
             f = open(filename, "w+")
+            b_array = bytearray(nBytes)
         else:
+            b_array = getByteArray(filename)
             f = open(filename, "r+")
-        disks[len(disks)] = {'file': f, 'nBytes': nBytes}
+        disks[len(disks)] = {'file': f, 'nBytes': nBytes, 'contents': b_array}
 
 
 # readBlock() reads an entire block of BLOCKSIZE bytes from the open disk (identified by ‘disk’) and copies the
