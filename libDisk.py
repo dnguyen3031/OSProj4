@@ -29,11 +29,12 @@ def getByteArray(filename, nBytes):
 #     return clean
 
 def openDisk(filename, nBytes):
+    global BLOCKSIZE
+    global disks
     if nBytes == 0:
         if os.path.exists(filename):
             b_array = getByteArray(filename, os.path.getsize(filename))
-            f = open(filename, "r+")
-            disks[len(disks)] = {'file': f, 'nBytes': os.path.getsize(filename), 'contents': b_array}
+            disks[len(disks)] = {'file_name': filename, 'nBytes': os.path.getsize(filename), 'contents': b_array}
         else:
             return -1 #error of file
     else:
@@ -43,7 +44,8 @@ def openDisk(filename, nBytes):
         else:
             b_array = getByteArray(filename, nBytes)
             f = open(filename, "r+")
-        disks[len(disks)] = {'file': f, 'nBytes': nBytes, 'contents': b_array}
+        f.close()
+        disks[len(disks)] = {'file_name': filename, 'nBytes': nBytes, 'contents': b_array}
 
 
 # readBlock() reads an entire block of BLOCKSIZE bytes from the open disk (identified by ‘disk’) and copies the
@@ -82,6 +84,11 @@ def writeBlock(disk, bNum, block):
 # writes to a closed disk should return an error. Closing a disk should also close the underlying file, committing
 # any writes being buffered by the real OS.
 def closeDisk(disk):
+    global BLOCKSIZE
+    global disks
+
     dDisk = disks[disk]
-    dDisk[disk].close()
+    with open(dDisk['file_name'], "wb") as binary_file:
+        binary_file.write(dDisk['contents'])
+
     del disks[disk]
