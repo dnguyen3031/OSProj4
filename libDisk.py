@@ -17,12 +17,16 @@ disks = {
 # an existing disk is opened, and should not be overwritten. There is no requirement to maintain integrity of any
 # content beyond nBytes. Errors must be returned for any other failures, as defined by your own error code system.
 def getByteArray(filename, nBytes):
-    f = open(filename, 'rb')
-    frame = f.read(nBytes)
-    clean = codecs.encode(bytes(frame), 'hex').decode("utf-8").upper()
-    f.close()
+    with open(filename, 'rb') as f:
+        return bytearray(f.read(nBytes))
 
-    return clean
+# def getByteArray(filename, nBytes):
+#     f = open(filename, 'rb')
+#     frame = f.read(nBytes)
+#     clean = codecs.encode(bytes(frame), 'hex').decode("utf-8").upper()
+#     f.close()
+#
+#     return clean
 
 def openDisk(filename, nBytes):
     if nBytes == 0:
