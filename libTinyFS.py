@@ -2,6 +2,7 @@ from libDisk import openDisk, writeBlock, readBlock
 
 # error codes:
 # -1 = failed to open disk
+# -3 = attempted to close non-open file
 
 BLOCKSIZE = 256
 magic_num = 45
@@ -104,7 +105,13 @@ def tfs_openFile(name):
 
 # Closes the file, de-allocates all system/disk resources, and removes table entry
 def tfs_closeFile(FD):
-    pass
+    global open_files
+
+    if FD not in open_files.keys():
+        return -3
+
+    del open_files[FD]
+    return 0
 
 
 # Writes buffer ‘buffer’ of size ‘size’, which represents an entire file’s contents, to the file system. Sets the
