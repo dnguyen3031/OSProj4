@@ -27,7 +27,7 @@ def getByteArray(filename, nBytes):
 def openDisk(filename, nBytes):
     if nBytes == 0:
         if os.path.exists(filename):
-            b_array = getByteArray(filename, nBytes)
+            b_array = getByteArray(filename, os.path.getsize(filename))
             f = open(filename, "r+")
             disks[len(disks)] = {'file': f, 'nBytes': os.path.getsize(filename), 'contents': b_array}
         else:
