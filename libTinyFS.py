@@ -1,11 +1,15 @@
-from libDisk import openDisk, writeBlock, readBlock
+from libDisk import openDisk, writeBlock, readBlock, closeDisk
 
 # error codes:
 # -1 = failed to open disk
-# -3 = attempted to close non-open file
+# -2 = attempted to mount an already mounted disk
+# -3 = disk not formatted to mount TinyFS
+# -4 = no currently mounted disk
+# -5 = attempted to close non-open file
 
 BLOCKSIZE = 256
 magic_num = 45
+disk_num = -1
 
 open_files = {
     # 1: 0
@@ -52,6 +56,8 @@ def tfs_mkfs(filename, nBytes):
     for i in range(1, nBytes/BLOCKSIZE):
         free_block(file_num, i)
 
+    closeDisk(file_num)
+
 
 def create_super_block(file_num):
     global BLOCKSIZE
@@ -89,11 +95,34 @@ def free_block(file_num, i):
 # correct type. Only one file system may be mounted at a time. Use tfs_unmount to cleanly unmount the currently
 # mounted file system. Must return a specified success/error code.
 def tfs_mount(filename):
-    pass
+    global disk_num
+    global magic_num
+
+    if disk_num >= 0:
+        return -2
+
+    disk_num = openDisk(filename, 0)
+    if disk_num < 0:
+        return -1
+
+    if not readBlock(disk_num, 0)[1] == magic_num:
+        closeDisk(disk_num)
+        disk_num = -1
+        return -3
+
+    return 0
 
 
 def tfs_unmount():
-    pass
+    global disk_num
+
+    if disk_num < 0:
+        return -4
+
+    closeDisk(disk_num)
+    disk_num = -1
+    return 0
+
 
 
 # Opens a file for reading and writing on the currently mounted file system. Creates a dynamic resource table entry
@@ -108,7 +137,7 @@ def tfs_closeFile(FD):
     global open_files
 
     if FD not in open_files.keys():
-        return -3
+        return -5
 
     del open_files[FD]
     return 0
@@ -116,8 +145,19 @@ def tfs_closeFile(FD):
 
 # Writes buffer ‘buffer’ of size ‘size’, which represents an entire file’s contents, to the file system. Sets the
 # file pointer to 0 (the start of file) when done. Returns success/error codes.
-def tfs_writeFile(FD, buffer, size):
+def free_extent_blocks(FD):
     pass
+
+
+def tfs_writeFile(FD, buffer, size):
+    global BLOCKSIZE
+
+    free_extent_blocks(FD)
+
+    blocks_needed = size/(BLOCKSIZE-4)
+    last_block = 0
+    for i in range(blocks_needed):
+        last_blockcreate_new_extent(buffer[i:(i+1)*(BLOCKSIZE-4)], last_block)
 
 
 # deletes a file and marks its blocks as free on disk.
