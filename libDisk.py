@@ -34,6 +34,7 @@ def openDisk(filename, nBytes):
         if os.path.exists(filename):
             b_array = getByteArray(filename, os.path.getsize(filename))
             disks[len(disks)] = {'file_name': filename, 'nBytes': os.path.getsize(filename), 'contents': b_array}
+            return len(disks)-1
         else:
             return -1 #error of file
     else:
@@ -43,8 +44,8 @@ def openDisk(filename, nBytes):
             f.close()
         else:
             b_array = getByteArray(filename, nBytes)
-
         disks[len(disks)] = {'file_name': filename, 'nBytes': nBytes, 'contents': b_array}
+        return len(disks)-1
 
 
 # readBlock() reads an entire block of BLOCKSIZE bytes from the open disk (identified by ‘disk’) and copies the
