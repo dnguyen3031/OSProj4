@@ -6,6 +6,10 @@ from libDisk import openDisk, writeBlock, readBlock
 BLOCKSIZE = 256
 magic_num = 45
 
+open_files = {
+    # 1: 0
+}
+
 # super block layout
 # 0: 1
 # 1: 45
