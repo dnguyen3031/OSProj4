@@ -1,5 +1,4 @@
 import os.path
-import codecs
 
 BLOCKSIZE = 256
 disks = {
@@ -41,10 +40,10 @@ def openDisk(filename, nBytes):
         if not os.path.exists(filename):
             f = open(filename, "w+")
             b_array = bytearray(nBytes)
+            f.close()
         else:
             b_array = getByteArray(filename, nBytes)
-            f = open(filename, "r+")
-        f.close()
+
         disks[len(disks)] = {'file_name': filename, 'nBytes': nBytes, 'contents': b_array}
 
 
