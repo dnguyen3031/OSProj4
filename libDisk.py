@@ -43,7 +43,7 @@ def readBlock(disk, bNum, block):
     if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk].nBytes:
         return -1
 
-    return disks[disk].contents[bNum*BLOCKSIZE:(bNum + 1) * BLOCKSIZE].hex().upper()
+    return disks[disk].contents[bNum*BLOCKSIZE:(bNum + 1) * BLOCKSIZE]
 
 
 # writeBlock() takes disk number ‘disk’ and logical block number ‘bNum’ and writes the content of the buffer ‘block’
