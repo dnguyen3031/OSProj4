@@ -148,3 +148,5 @@ dmypy.json
 cython_debug/
 .idea/misc.xml
 .idea/OSProj4.iml
+*.iml
+*.xml
