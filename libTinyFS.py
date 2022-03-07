@@ -198,7 +198,18 @@ def tfs_readByte(FD, buffer):
 
 # change the file pointer location to offset (absolute). Returns success/error codes.
 def tfs_seek(FD, offset):
-    pass
+    global disk_num
+    global open_files
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    open_files[FD] = offset
+    return 0
+
 
 # In your tinyFS.h file, you must also include the following definitions:
 
