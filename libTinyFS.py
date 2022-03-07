@@ -137,6 +137,9 @@ def tfs_openFile(name):
     global open_files
     global disk_num
 
+    if disk_num < 0:
+        return -4
+
     super_block = readBlock(disk_num, 0)
 
     key = super_block[4]
@@ -252,7 +255,23 @@ def tfs_deleteFile(FD):
 # by one upon success. If the file pointer is already at the end of the file then tfs_readByte() should return an
 # error and not increment the file pointer.
 def tfs_readByte(FD, buffer):
-    pass
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys(): #fyi i think we can just do if not in open_files so we don't have to do the extra operation
+        return -5
+
+    buffer = readBlock(disk_num, open_files[FD])
+
+    if buffer == -1:
+        return -1
+    else:
+        open_files[FD] += 1
+        return 0
 
 
 # change the file pointer location to offset (absolute). Returns success/error codes.
