@@ -6,6 +6,9 @@ from libDisk import openDisk, writeBlock, readBlock, closeDisk
 # -3 = disk not formatted to mount TinyFS
 # -4 = no mounted file system
 # -5 = attempted to close non-open file
+# -6 = failed to read block
+# -7 = failed to write block
+# -8 = failed to create new block
 
 BLOCKSIZE = 256
 magic_num = 45
@@ -169,19 +172,75 @@ def tfs_closeFile(FD):
 
 # Writes buffer ‘buffer’ of size ‘size’, which represents an entire file’s contents, to the file system. Sets the
 # file pointer to 0 (the start of file) when done. Returns success/error codes.
-def free_extent_blocks(FD):
-    pass
+def free_extent_blocks(block_num):
+    global BLOCKSIZE
+    global magic_num
+    global disk_num
+
+    next_extent_block = readBlock(disk_num, block_num)[2]
+    super_block = readBlock(disk_num, 0)
+
+    first_free = super_block[2]
+
+    new_free = bytearray(BLOCKSIZE)
+    new_free[0] = 4
+    new_free[1] = magic_num
+    new_free[2] = first_free
+
+    writeBlock(disk_num, block_num, new_free)
+
+    super_block[2] = block_num
+    writeBlock(disk_num, 0, super_block)
+
+    free_extent_blocks(next_extent_block)
+
+
+def create_new_extent_block(data, last_block):
+    global disk_num
+    global magic_num
+
+    super_block = readBlock(disk_num, 0)
+    next_free = super_block[2]
+    super_block[2] = readBlock(disk_num, next_free)[2]
+
+    if writeBlock(disk_num, 0, super_block) == -1:
+        return -7
+
+    if writeBlock(disk_num, next_free, bytearray([3, magic_num, last_block, 0] + data)) == -1:
+        return -7
+    return next_free
 
 
 def tfs_writeFile(FD, buffer, size):
+    global disk_num
+    global open_files
     global BLOCKSIZE
 
-    free_extent_blocks(FD)
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    free_extent_blocks(inode[4])
 
     blocks_needed = size/(BLOCKSIZE-4)
     last_block = 0
     for i in range(blocks_needed):
-        last_blockcreate_new_extent(buffer[i:(i+1)*(BLOCKSIZE-4)], last_block)
+        last_block = create_new_extent_block(buffer[i*(BLOCKSIZE-4):(i+1)*(BLOCKSIZE-4)], last_block)
+        if last_block < 0:
+            return -8
+
+    open_files[FD] = 0
+    inode[4] = last_block
+
+    if writeBlock(disk_num, FD, inode) == -1:
+        return -7
+    return 0
 
 
 # deletes a file and marks its blocks as free on disk.
