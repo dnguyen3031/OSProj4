@@ -1,4 +1,5 @@
-from libDisk import openDisk, writeBlock, readBlock, closeDisk, read_byte
+from libDisk import openDisk, writeBlock, readBlock, closeDisk
+import math
 
 # error codes:
 # -1 = failed to open disk
@@ -9,6 +10,7 @@ from libDisk import openDisk, writeBlock, readBlock, closeDisk, read_byte
 # -6 = failed to read block
 # -7 = failed to write block
 # -8 = failed to create new block
+# -9 = failed to find file
 
 BLOCKSIZE = 256
 magic_num = 45
@@ -69,7 +71,7 @@ def create_super_block(file_num):
     out = bytearray(BLOCKSIZE)
     out[0] = 1
     out[1] = magic_num
-    out[2] = 1
+    out[2] = 0
 
     writeBlock(file_num, 0, out)
 
@@ -144,15 +146,15 @@ def tfs_openFile(name):
 
     key = super_block[4]
     currNode = readBlock(disk_num, super_block[4])
-    currNode.seek(6)
-    node_name = currNode.read(8).decode("utf-8")
+    node_name = currNode[6:14].decode("utf-8")
 
     while name != node_name and not currNode[2] == 0:
         key = currNode[2]
         currNode = readBlock(disk_num, currNode[2])
-        currNode.seek(6)
-        node_name = currNode.read(8).decode("utf-8")
+        node_name = currNode[6:14].decode("utf-8")
 
+    if name != node_name:
+        return -9
 
     open_files[key] = 0
     return key
@@ -175,6 +177,37 @@ def tfs_closeFile(FD):
 
 # Writes buffer ‘buffer’ of size ‘size’, which represents an entire file’s contents, to the file system. Sets the
 # file pointer to 0 (the start of file) when done. Returns success/error codes.
+def tfs_writeFile(FD, buffer, size):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    free_extent_blocks(inode[4])
+
+    blocks_needed = math.ceil(size/(BLOCKSIZE-4))
+    last_block = create_new_extent_block(buffer[(blocks_needed-1) * (BLOCKSIZE - 4):], 0)
+    for i in range(blocks_needed-2, -1, -1):
+        last_block = create_new_extent_block(buffer[i*(BLOCKSIZE-4):(i+1)*(BLOCKSIZE-4)], last_block)
+        if last_block < 0:
+            return -8
+
+    open_files[FD] = 0
+    inode[4] = last_block
+
+    if writeBlock(disk_num, FD, inode) == -1:
+        return -7
+    return 0
+
 def free_extent_blocks(block_num):
     global BLOCKSIZE
     global magic_num
@@ -195,6 +228,8 @@ def free_extent_blocks(block_num):
     super_block[2] = block_num
     writeBlock(disk_num, 0, super_block)
 
+    if next_extent_block == 0:
+        return 0
     free_extent_blocks(next_extent_block)
 
 
@@ -212,38 +247,6 @@ def create_new_extent_block(data, last_block):
     if writeBlock(disk_num, next_free, bytearray([3, magic_num, last_block, 0] + data)) == -1:
         return -7
     return next_free
-
-
-def tfs_writeFile(FD, buffer, size):
-    global disk_num
-    global open_files
-    global BLOCKSIZE
-
-    if disk_num < 0:
-        return -4
-
-    if FD not in open_files.keys():
-        return -5
-
-    inode = readBlock(disk_num, FD)
-    if inode == -1:
-        return -6
-
-    free_extent_blocks(inode[4])
-
-    blocks_needed = size/(BLOCKSIZE-4)
-    last_block = 0
-    for i in range(blocks_needed):
-        last_block = create_new_extent_block(buffer[i*(BLOCKSIZE-4):(i+1)*(BLOCKSIZE-4)], last_block)
-        if last_block < 0:
-            return -8
-
-    open_files[FD] = 0
-    inode[4] = last_block
-
-    if writeBlock(disk_num, FD, inode) == -1:
-        return -7
-    return 0
 
 
 # deletes a file and marks its blocks as free on disk.
@@ -278,6 +281,8 @@ def tfs_deleteFile(FD):
     super_block[2] = FD
     writeBlock(disk_num, 0, super_block)
 
+    del open_files[FD]
+
 
 # reads one byte from the file and copies it to buffer, using the current file pointer location and incrementing it
 # by one upon success. If the file pointer is already at the end of the file then tfs_readByte() should return an
@@ -293,7 +298,7 @@ def tfs_readByte(FD, buffer):
     if FD not in open_files.keys(): #fyi i think we can just do if not in open_files so we don't have to do the extra operation
         return -5
 
-    buffer = read_byte(disk_num, open_files[FD])
+    buffer = readBlock(disk_num, open_files[FD])
 
     if buffer == -1:
         return -1
