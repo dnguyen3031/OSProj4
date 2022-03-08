@@ -58,10 +58,19 @@ def readBlock(disk, bNum, block=None):
     global BLOCKSIZE
     global disks
 
-    if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk].nBytes:
+    if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk].nBytes: #handle eof?
         return -1
 
     return disks[disk].contents[bNum*BLOCKSIZE:(bNum + 1) * BLOCKSIZE]
+
+def read_byte(disk, bNum, block=None):
+    global BLOCKSIZE
+    global disks
+
+    if disk not in disks.keys() or (bNum+1) > disks[disk].nBytes: #handle eof?
+        return -1
+
+    return disks[disk].contents[bNum:(bNum + 1)]
 
 
 # writeBlock() takes disk number ‘disk’ and logical block number ‘bNum’ and writes the content of the buffer ‘block’

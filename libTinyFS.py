@@ -1,4 +1,4 @@
-from libDisk import openDisk, writeBlock, readBlock, closeDisk
+from libDisk import openDisk, writeBlock, readBlock, closeDisk, read_byte
 
 # error codes:
 # -1 = failed to open disk
@@ -293,7 +293,7 @@ def tfs_readByte(FD, buffer):
     if FD not in open_files.keys(): #fyi i think we can just do if not in open_files so we don't have to do the extra operation
         return -5
 
-    buffer = readBlock(disk_num, open_files[FD])
+    buffer = read_byte(disk_num, open_files[FD])
 
     if buffer == -1:
         return -1
