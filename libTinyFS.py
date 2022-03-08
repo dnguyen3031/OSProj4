@@ -248,7 +248,35 @@ def tfs_writeFile(FD, buffer, size):
 
 # deletes a file and marks its blocks as free on disk.
 def tfs_deleteFile(FD):
-    pass
+    global BLOCKSIZE
+    global magic_num
+    global disk_num
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    free_extent_blocks(inode[4])
+
+    super_block = readBlock(disk_num, 0)
+
+    first_free = super_block[2]
+
+    new_free = bytearray(BLOCKSIZE)
+    new_free[0] = 4
+    new_free[1] = magic_num
+    new_free[2] = first_free
+
+    writeBlock(disk_num, FD, new_free)
+
+    super_block[2] = FD
+    writeBlock(disk_num, 0, super_block)
 
 
 # reads one byte from the file and copies it to buffer, using the current file pointer location and incrementing it
