@@ -298,13 +298,23 @@ def tfs_readByte(FD, buffer):
     if FD not in open_files.keys(): #fyi i think we can just do if not in open_files so we don't have to do the extra operation
         return -5
 
-    buffer = readBlock(disk_num, open_files[FD])
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
 
-    if buffer == -1:
-        return -1
-    else:
-        open_files[FD] += 1
-        return 0
+    target_block = open_files[FD]//(BLOCKSIZE-4)
+    target_offset = open_files[FD]%(BLOCKSIZE-4)
+
+    block = readBlock(disk_num, inode[4])
+    for i in range(target_block):
+        if block < 0:
+            return -1
+        block = readBlock(disk_num, block[2])
+
+    byte_val = block[target_offset+4:target_offset+5]
+
+    open_files[FD] += 1
+    return byte_val
 
 
 # change the file pointer location to offset (absolute). Returns success/error codes.
