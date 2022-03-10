@@ -426,8 +426,56 @@ def tfs_readdir():
 
     return 0
 
-def tfs_stat(FD):
-    pass
+def tfs_stat_creation(FD):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    return int(inode[14:24].decode("utf-8"))
+
+def tfs_stat_write(FD):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    return int(inode[24:34].decode("utf-8"))
+
+def tfs_stat_read(FD):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    return int(inode[34:44].decode("utf-8"))
 
 # In your tinyFS.h file, you must also include the following definitions:
 
