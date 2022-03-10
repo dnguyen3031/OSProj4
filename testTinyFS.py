@@ -26,6 +26,7 @@ class Test(object):
         tfs_mkfs("BACKING_STORE.bin", 256 * 3)
         tfs_mount("BACKING_STORE.bin")
         FD = tfs_openFile("test.txt")
+        # should we call write before readByte? or can we set open_file[FD] to 0 in tfs_openFile
         print(FD)
         byte = tfs_readByte(FD)
         print(byte)
@@ -39,7 +40,6 @@ class Test(object):
         FD = tfs_openFile("test.txt")
         print(FD)
         byte = tfs_readByte(FD)
-        #should we call write before readByte? or can we set open_file[FD] to 0 in tfs_openFile
         print(byte)
         tfs_closeFile(FD)
 
