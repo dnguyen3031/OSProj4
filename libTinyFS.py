@@ -234,6 +234,9 @@ def tfs_writeFile(FD, buffer, size):
             return -8
 
     open_files[FD] = 0
+    timestamp = str(int(time.time())).encode("utf-8")
+    inode = inode[:24] + timestamp + inode[34:]
+    inode = inode[:34] + timestamp + inode[44:]
     inode[4] = last_block
     encoded_size = str(size).encode("utf-8")
     inode = inode[:44] + encoded_size + inode[44+len(encoded_size):]
@@ -337,6 +340,10 @@ def tfs_readByte(FD, buffer=None):
     if inode == -1:
         return -6
 
+    timestamp = str(int(time.time())).encode("utf-8")
+    inode = inode[:34] + timestamp + inode[44:]
+    writeBlock(disk_num, FD, inode)
+
     target_block = open_files[FD] // (BLOCKSIZE - 4)
     target_offset = open_files[FD] % (BLOCKSIZE - 4)
 
@@ -419,8 +426,56 @@ def tfs_readdir():
 
     return 0
 
-def tfs_stat(FD):
-    pass
+def tfs_stat_creation(FD):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    return int(inode[14:24].decode("utf-8"))
+
+def tfs_stat_write(FD):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    return int(inode[24:34].decode("utf-8"))
+
+def tfs_stat_read(FD):
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    if disk_num < 0:
+        return -4
+
+    if FD not in open_files.keys():
+        return -5
+
+    inode = readBlock(disk_num, FD)
+    if inode == -1:
+        return -6
+
+    return int(inode[34:44].decode("utf-8"))
 
 # In your tinyFS.h file, you must also include the following definitions:
 
