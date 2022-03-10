@@ -170,6 +170,7 @@ def tfs_openFile(name):
     ret = writeBlock(disk_num, key+1, new_inode)
     if ret < 0:
         return ret
+    open_files[key+1] = 0
     return key+1
 
 # Closes the file, de-allocates all system/disk resources, and removes table entry
