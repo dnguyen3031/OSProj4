@@ -353,6 +353,16 @@ def tfs_seek(FD, offset):
     return 0
 
 
+# Renames a file.  New name should be passed in.
+def tfs_rename(old_name, name):
+    pass
+
+
+# lists all the files and directories on the disk
+def tfs_readdir():
+    pass
+
+
 # In your tinyFS.h file, you must also include the following definitions:
 
 # The default size of the disk and file system block
