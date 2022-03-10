@@ -62,6 +62,7 @@ def tfs_mkfs(filename, nBytes):
         free_block(file_num, i)
 
     closeDisk(file_num)
+    return 0
 
 
 def create_super_block(file_num):
