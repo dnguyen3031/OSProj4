@@ -16,7 +16,6 @@ BLOCKSIZE = 256
 magic_num = 45
 disk_num = -1
 
-# todo: fix: current implementation limits us to one fd per file
 open_files = {
     # file's inode block location: read point
 }
@@ -33,7 +32,10 @@ open_files = {
 # 2: next inode in linked list of inodes
 # 4: first file extent block in linked list of file extent blocks
 # 6-13: file name
-# 14-: length of file
+# 14-23: creation time
+# 24-33: update time
+# 34-43: read time
+# 44-: length of file
 
 # file extent block layout
 # 0: 3
@@ -70,7 +72,6 @@ def create_super_block(file_num):
     global BLOCKSIZE
     global magic_num
 
-    # todo: check magic num location
     out = bytearray(BLOCKSIZE)
     out[0] = 1
     out[1] = magic_num
@@ -134,7 +135,6 @@ def tfs_unmount():
 # Opens a file for reading and writing on the currently mounted file system. Creates a dynamic resource table entry
 # for the file, and returns a file descriptor (integer) that can be used to reference this file while the filesystem
 # is mounted.
-
 def tfs_openFile(name):
     global open_files
     global disk_num
@@ -281,7 +281,7 @@ def create_new_extent_block(data, last_block):
 
 
 # deletes a file and marks its blocks as free on disk.
-def tfs_deleteFile(FD):  # todo: does the file have to be open
+def tfs_deleteFile(FD):
     global BLOCKSIZE
     global magic_num
     global disk_num
