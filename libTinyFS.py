@@ -145,19 +145,32 @@ def tfs_openFile(name):
     super_block = readBlock(disk_num, 0)
 
     key = super_block[4]
-    currNode = readBlock(disk_num, super_block[4])
-    node_name = currNode[6:14].decode("utf-8")
 
-    while name != node_name and not currNode[2] == 0:
-        key = currNode[2]
-        currNode = readBlock(disk_num, currNode[2])
+    if key != 0:
+        currNode = readBlock(disk_num, super_block[4])
         node_name = currNode[6:14].decode("utf-8")
+        while name != node_name and not currNode[2] == 0:
+            key = currNode[2]
+            currNode = readBlock(disk_num, currNode[2])
+            node_name = currNode[6:14].decode("utf-8")
 
-    if name != node_name:
-        return -9
+        if name == node_name:
+            open_files[key] = 0
+            return key
+        else:
+            
+    else:
+        new_inode = bytearray(BLOCKSIZE)
+        new_inode[0] = 2
+        new_inode[1] = 45
+        new_inode[2] = 0
 
-    open_files[key] = 0
-    return key
+    if key == 0:
+
+
+
+
+
 
 
 # Closes the file, de-allocates all system/disk resources, and removes table entry
