@@ -16,15 +16,16 @@ BLOCKSIZE = 256
 magic_num = 45
 disk_num = -1
 
+# todo: fix: current implementation limits us to one fd per file
 open_files = {
-    # 1: 0
+    # file's inode block location: read point
 }
 
 # super block layout
 # 0: 1
 # 1: 45
-# 2: first free block in linked list of free blocks
-# 4: first inode in linked list of free inodes
+# 2: first inode in linked list of free inodes
+# 4: first free block in linked list of free blocks
 
 # inode block layout
 # 0: 2
@@ -58,7 +59,7 @@ def tfs_mkfs(filename, nBytes):
         return -1
 
     create_super_block(file_num)
-    for i in range(1, int(math.ceil(nBytes/BLOCKSIZE))):
+    for i in range(1, int(math.ceil(nBytes / BLOCKSIZE))):
         free_block(file_num, i)
 
     closeDisk(file_num)
@@ -69,10 +70,11 @@ def create_super_block(file_num):
     global BLOCKSIZE
     global magic_num
 
+    # todo: check magic num location
     out = bytearray(BLOCKSIZE)
     out[0] = 1
     out[1] = magic_num
-    out[2] = 0
+    out[4] = 0
 
     writeBlock(file_num, 0, out)
 
@@ -82,18 +84,17 @@ def free_block(file_num, i):
     global magic_num
 
     super_b = readBlock(file_num, 0)
-    first_free = super_b[2]
+    first_free = super_b[4]
 
     new_free = bytearray(BLOCKSIZE)
     new_free[0] = 4
     new_free[1] = magic_num
-    new_free[2] = first_free
+    new_free[4] = first_free
 
     writeBlock(file_num, i, new_free)
 
-    super_b[2] = i
+    super_b[4] = i
     writeBlock(file_num, 0, super_b)
-
 
 
 # tfs_mount(char *filename) “mounts” a TinyFS file system located within ‘filename’. tfs_unmount(void) “unmounts” the
@@ -130,13 +131,11 @@ def tfs_unmount():
     return 0
 
 
-
 # Opens a file for reading and writing on the currently mounted file system. Creates a dynamic resource table entry
 # for the file, and returns a file descriptor (integer) that can be used to reference this file while the filesystem
 # is mounted.
+
 def tfs_openFile(name):
-    global BLOCKSIZE
-    global magic_num
     global open_files
     global disk_num
 
@@ -145,41 +144,50 @@ def tfs_openFile(name):
 
     super_block = readBlock(disk_num, 0)
 
-    key = super_block[4]
+    if super_block < 0:
+        return -6
+
+    inode_location = super_block[2]
+    inode = readBlock(disk_num, inode_location)
+
+    while inode_location != 0 and inode[6:14].decode("utf-8") != name:
+        inode_location = inode[2]
+        inode = readBlock(disk_num, inode_location)
+        if inode < 0:
+            return -6
+
+    if inode[6:14].decode("utf-8") != name:
+        inode_location = create_inode(name)
+
+    open_files[inode_location] = 0
+
+    return inode_location
+
+
+def create_inode(name):
+    global BLOCKSIZE
+    global magic_num
+    global disk_num
+
+    super_block = readBlock(disk_num, 0)
+    new_inode_location = super_block[4]
 
     new_inode = bytearray(BLOCKSIZE)
     new_inode[0] = 2
-    new_inode[1] = 45
-    new_inode[2] = 0
+    new_inode[1] = magic_num
+    new_inode[2] = super_block[2]
     new_inode[4] = 0
-    # make name into guaranteed 6 bytes?
-    new_inode = new_inode[:6] + name.encode() + new_inode[14:]
-    if os.path.exists(name):
-        new_inode[14] = os.path.getsize(name)
-    else:
-        new_inode[14] = 0
+    new_inode = new_inode[:6] + name[:6].encode() + new_inode[14:]
+    new_inode[14] = 0
 
-    if key != 0:
-        currNode = readBlock(disk_num, super_block[4])
-        node_name = currNode[6:14].decode("utf-8")
-        while name != node_name and not currNode[2] == 0:
-            key = currNode[2]
-            currNode = readBlock(disk_num, currNode[2])
-            node_name = currNode[6:14].decode("utf-8")
+    super_block[2] = super_block[4]
+    super_block[4] = readBlock(disk_num, super_block[4])[2]
 
-        if name == node_name:
-            open_files[key] = 0
-            return key
-        else:
-            currNode[2] = key+1
-    else:
-        super_block[4] = key+1
+    writeBlock(disk_num, 0, super_block)
+    writeBlock(disk_num, new_inode_location, new_inode)
 
-    ret = writeBlock(disk_num, key+1, new_inode)
-    if ret < 0:
-        return ret
-    open_files[key+1] = 0
-    return key+1
+    return new_inode_location
+
 
 # Closes the file, de-allocates all system/disk resources, and removes table entry
 def tfs_closeFile(FD):
@@ -215,19 +223,21 @@ def tfs_writeFile(FD, buffer, size):
 
     free_extent_blocks(inode[4])
 
-    blocks_needed = math.ceil(size/(BLOCKSIZE-4))
-    last_block = create_new_extent_block(buffer[(blocks_needed-1) * (BLOCKSIZE - 4):], 0)
-    for i in range(blocks_needed-2, -1, -1):
-        last_block = create_new_extent_block(buffer[i*(BLOCKSIZE-4):(i+1)*(BLOCKSIZE-4)], last_block)
+    blocks_needed = math.ceil(size / (BLOCKSIZE - 4))
+    last_block = create_new_extent_block(buffer[(blocks_needed - 1) * (BLOCKSIZE - 4):], 0)  # ned to pad
+    for i in range(blocks_needed - 2, -1, -1):
+        last_block = create_new_extent_block(buffer[i * (BLOCKSIZE - 4):(i + 1) * (BLOCKSIZE - 4)], last_block)
         if last_block < 0:
             return -8
 
     open_files[FD] = 0
     inode[4] = last_block
+    inode[14] = size  # todo: fix: caps file size at 256
 
     if writeBlock(disk_num, FD, inode) == -1:
         return -7
     return 0
+
 
 def free_extent_blocks(block_num):
     global BLOCKSIZE
@@ -237,7 +247,7 @@ def free_extent_blocks(block_num):
     next_extent_block = readBlock(disk_num, block_num)[2]
     super_block = readBlock(disk_num, 0)
 
-    first_free = super_block[2]
+    first_free = super_block[4]
 
     new_free = bytearray(BLOCKSIZE)
     new_free[0] = 4
@@ -246,7 +256,7 @@ def free_extent_blocks(block_num):
 
     writeBlock(disk_num, block_num, new_free)
 
-    super_block[2] = block_num
+    super_block[4] = block_num
     writeBlock(disk_num, 0, super_block)
 
     if next_extent_block == 0:
@@ -259,8 +269,8 @@ def create_new_extent_block(data, last_block):
     global magic_num
 
     super_block = readBlock(disk_num, 0)
-    next_free = super_block[2]
-    super_block[2] = readBlock(disk_num, next_free)[2]
+    next_free = super_block[4]
+    super_block[4] = readBlock(disk_num, next_free)[2]
 
     if writeBlock(disk_num, 0, super_block) == -1:
         return -7
@@ -290,7 +300,7 @@ def tfs_deleteFile(FD):
 
     super_block = readBlock(disk_num, 0)
 
-    first_free = super_block[2]
+    first_free = super_block[4]
 
     new_free = bytearray(BLOCKSIZE)
     new_free[0] = 4
@@ -299,7 +309,7 @@ def tfs_deleteFile(FD):
 
     writeBlock(disk_num, FD, new_free)
 
-    super_block[2] = FD
+    super_block[4] = FD
     writeBlock(disk_num, 0, super_block)
 
     del open_files[FD]
@@ -316,15 +326,15 @@ def tfs_readByte(FD, buffer=None):
     if disk_num < 0:
         return -4
 
-    if FD not in open_files.keys(): #fyi i think we can just do if not in open_files so we don't have to do the extra operation
+    if FD not in open_files.keys():
         return -5
 
     inode = readBlock(disk_num, FD)
     if inode == -1:
         return -6
 
-    target_block = open_files[FD]//(BLOCKSIZE-4)
-    target_offset = open_files[FD]%(BLOCKSIZE-4)
+    target_block = open_files[FD] // (BLOCKSIZE - 4)
+    target_offset = open_files[FD] % (BLOCKSIZE - 4)
 
     block = readBlock(disk_num, inode[4])
     for i in range(target_block):
@@ -332,7 +342,7 @@ def tfs_readByte(FD, buffer=None):
             return -1
         block = readBlock(disk_num, block[2])
 
-    byte_val = block[target_offset+4:target_offset+5]
+    byte_val = block[target_offset + 4:target_offset + 5]
 
     open_files[FD] += 1
     return byte_val
@@ -355,12 +365,57 @@ def tfs_seek(FD, offset):
 
 # Renames a file.  New name should be passed in.
 def tfs_rename(old_name, name):
-    pass
+    global open_files
+    global disk_num
+
+    if disk_num < 0:
+        return -4
+
+    super_block = readBlock(disk_num, 0)
+
+    if super_block < 0:
+        return -6
+
+    inode_location = super_block[2]
+    inode = readBlock(disk_num, inode_location)
+
+    while inode_location != 0 and inode[6:14].decode("utf-8") != old_name:
+        inode_location = inode[2]
+        inode = readBlock(disk_num, inode_location)
+        if inode < 0:
+            return -6
+
+    if inode[6:14].decode("utf-8") != old_name:
+        return -9
+
+    inode = inode[:6] + name[:6].encode() + inode[14:]
+
+    writeBlock(disk_num, inode_location, inode)
+
+    return 0
 
 
 # lists all the files and directories on the disk
 def tfs_readdir():
-    pass
+    global disk_num
+    global open_files
+    global BLOCKSIZE
+
+    super_block = readBlock(disk_num, 0)
+
+    if super_block < 0:
+        return -6
+
+    next_inode = super_block[2]
+
+    while next_inode != 0:
+        inode = readBlock(disk_num, next_inode)
+        if inode < 0:
+            return -6
+        next_inode = inode[2]
+        print(inode[6:14].decode("utf-8"))
+
+    return 0
 
 
 # In your tinyFS.h file, you must also include the following definitions:
