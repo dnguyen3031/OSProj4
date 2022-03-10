@@ -342,10 +342,8 @@ def tfs_readByte(FD, buffer=None):
             return -1
         block = readBlock(disk_num, block[2])
 
-    byte_val = block[target_offset + 4:target_offset + 5]
-
     open_files[FD] += 1
-    return byte_val
+    return block[target_offset]
 
 
 # change the file pointer location to offset (absolute). Returns success/error codes.
