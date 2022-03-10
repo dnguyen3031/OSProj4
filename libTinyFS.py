@@ -1,5 +1,5 @@
 from libDisk import openDisk, writeBlock, readBlock, closeDisk
-import math, os
+import math
 
 # error codes:
 # -1 = failed to open disk
