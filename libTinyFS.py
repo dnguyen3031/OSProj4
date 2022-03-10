@@ -1,5 +1,5 @@
 from libDisk import openDisk, writeBlock, readBlock, closeDisk
-import math
+import math, time
 
 # error codes:
 # -1 = failed to open disk
@@ -172,11 +172,16 @@ def create_inode(name):
     super_block = readBlock(disk_num, 0)
     new_inode_location = super_block[4]
 
+    timestamp = str(int(time.time())).encode("utf-8")
+
     new_inode = bytearray(BLOCKSIZE)
     new_inode[0] = 2
     new_inode[1] = magic_num
     new_inode[2] = super_block[2]
-    new_inode = new_inode[:6] + name[:6].encode() + new_inode[14:]
+    new_inode = new_inode[:6] + name[:6].encode("utf-8") + new_inode[14:]
+    new_inode = new_inode[:14] + timestamp + new_inode[24:]
+    new_inode = new_inode[:24] + timestamp + new_inode[34:]
+    new_inode = new_inode[:34] + timestamp + new_inode[44:]
 
     super_block[2] = super_block[4]
     super_block[4] = readBlock(disk_num, super_block[4])[2]
@@ -414,6 +419,8 @@ def tfs_readdir():
 
     return 0
 
+def tfs_stat(FD):
+    pass
 
 # In your tinyFS.h file, you must also include the following definitions:
 
