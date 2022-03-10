@@ -151,9 +151,8 @@ def tfs_openFile(name):
     new_inode[1] = 45
     new_inode[2] = 0
     new_inode[4] = 0
-    new_inode[6:14] = 0
-    # compress name into guaranteed 6 bytes?
-    new_inode[6] = name
+    # make name into guaranteed 6 bytes?
+    new_inode = new_inode[:6] + name.encode() + new_inode[14:]
     if os.path.exists(name):
         new_inode[14] = os.path.getsize(name)
     else:

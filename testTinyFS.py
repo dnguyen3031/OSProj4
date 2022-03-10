@@ -1,11 +1,13 @@
 from libTinyFS import *
 import os
 
+default_size = 10240
+
 class Test(object):
     def demo01(self):
         #test if mkfs works by verifying bytes
         print("Running Demo01")
-        tfs_mkfs("BACKING_STORE.bin", 256*3)
+        tfs_mkfs("BACKING_STORE.bin", default_size)
         f = open("BACKING_STORE.bin", "rb")
         print(f.read())
         file_size = os.path.getsize("BACKING_STORE.bin")
@@ -23,7 +25,7 @@ class Test(object):
     def demo03(self):
         #test open and closing of a file, with a readByte
         print("Running Demo03")
-        tfs_mkfs("BACKING_STORE.bin", 256 * 3)
+        tfs_mkfs("BACKING_STORE.bin", default_size)
         tfs_mount("BACKING_STORE.bin")
         FD = tfs_openFile("test.txt")
         # should we call write before readByte? or can we set open_file[FD] to 0 in tfs_openFile
@@ -36,7 +38,7 @@ class Test(object):
     def demo04(self):
         #test open and closing of a file, with a seek, then readByte
         print("Running Demo04")
-        tfs_mkfs("BACKING_STORE.bin", 256 * 3)
+        tfs_mkfs("BACKING_STORE.bin", default_size)
         tfs_mount("BACKING_STORE.bin")
         FD = tfs_openFile("test.txt")
         print(FD)
@@ -49,7 +51,7 @@ class Test(object):
     def demoError01(self):
         #attempt to run without mounting (should return -4)
         print("Running Demo03")
-        tfs_mkfs("BACKING_STORE.bin", 256 * 3)
+        tfs_mkfs("BACKING_STORE.bin", default_size)
         FD = tfs_openFile("test.txt")
         print(FD)
         byte = tfs_readByte(FD)
