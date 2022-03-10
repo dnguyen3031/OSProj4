@@ -1,5 +1,15 @@
+from libTinyFS import *
+
+
+def run_test(test_name, function, *args):
+    print('Running: ' + test_name)
+    result = function(*args)
+    print('Result: ' + str(result))
+    return result
+
+
 # todo: start general behavior display
-# make fs
+run_test('Make FS', tfs_mkfs, 'test_backing_store.bin', 10240)  # make fs
 # mount fs
 # open fs
 # create file
