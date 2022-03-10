@@ -39,6 +39,7 @@ class Test(object):
         FD = tfs_openFile("test.txt")
         print(FD)
         byte = tfs_readByte(FD)
+        #should we call write before readByte? or can we set open_file[FD] to 0 in tfs_openFile
         print(byte)
         tfs_closeFile(FD)
 
