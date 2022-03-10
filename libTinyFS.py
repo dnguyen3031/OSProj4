@@ -281,7 +281,7 @@ def create_new_extent_block(data, last_block):
 
 
 # deletes a file and marks its blocks as free on disk.
-def tfs_deleteFile(FD):
+def tfs_deleteFile(FD):  # todo: does the file have to be open
     global BLOCKSIZE
     global magic_num
     global disk_num
