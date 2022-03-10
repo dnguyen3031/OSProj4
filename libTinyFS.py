@@ -58,7 +58,7 @@ def tfs_mkfs(filename, nBytes):
         return -1
 
     create_super_block(file_num)
-    for i in range(1, nBytes/BLOCKSIZE):
+    for i in range(1, int(math.ceil(nBytes/BLOCKSIZE))):
         free_block(file_num, i)
 
     closeDisk(file_num)
@@ -287,7 +287,7 @@ def tfs_deleteFile(FD):
 # reads one byte from the file and copies it to buffer, using the current file pointer location and incrementing it
 # by one upon success. If the file pointer is already at the end of the file then tfs_readByte() should return an
 # error and not increment the file pointer.
-def tfs_readByte(FD, buffer):
+def tfs_readByte(FD, buffer=None):
     global disk_num
     global open_files
     global BLOCKSIZE
