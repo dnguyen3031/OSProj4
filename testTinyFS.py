@@ -21,13 +21,26 @@ class Test(object):
         print("File Size is :", file_size, "bytes")
 
     def demo03(self):
-        #test open and closing of a file
+        #test open and closing of a file, with a readByte
         print("Running Demo03")
         tfs_mkfs("BACKING_STORE.bin", 256 * 3)
         tfs_mount("BACKING_STORE.bin")
         FD = tfs_openFile("test.txt")
         # should we call write before readByte? or can we set open_file[FD] to 0 in tfs_openFile
         print(FD)
+        byte = tfs_readByte(FD)
+        print(byte)
+        tfs_closeFile(FD)
+        tfs_unmount()
+
+    def demo04(self):
+        #test open and closing of a file, with a seek, then readByte
+        print("Running Demo04")
+        tfs_mkfs("BACKING_STORE.bin", 256 * 3)
+        tfs_mount("BACKING_STORE.bin")
+        FD = tfs_openFile("test.txt")
+        print(FD)
+        tfs_seek(FD, 256)
         byte = tfs_readByte(FD)
         print(byte)
         tfs_closeFile(FD)
@@ -48,4 +61,4 @@ class Test(object):
 
 
 if __name__ == '__main__':
-    Test().demo03()
+    Test().demo04()

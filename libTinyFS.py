@@ -1,5 +1,5 @@
 from libDisk import openDisk, writeBlock, readBlock, closeDisk
-import math
+import math, os
 
 # error codes:
 # -1 = failed to open disk
@@ -150,6 +150,14 @@ def tfs_openFile(name):
     new_inode[0] = 2
     new_inode[1] = 45
     new_inode[2] = 0
+    new_inode[4] = 0
+    new_inode[6:14] = 0
+    # compress name into guaranteed 6 bytes?
+    new_inode[6] = name
+    if os.path.exists(name):
+        new_inode[14] = os.path.getsize(name)
+    else:
+        new_inode[14] = 0
 
     if key != 0:
         currNode = readBlock(disk_num, super_block[4])
@@ -320,7 +328,7 @@ def tfs_readByte(FD, buffer=None):
 
     block = readBlock(disk_num, inode[4])
     for i in range(target_block):
-        if block < 0:
+        if block == -1:
             return -1
         block = readBlock(disk_num, block[2])
 
