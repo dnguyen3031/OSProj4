@@ -3,9 +3,10 @@ import os
 
 default_size = 10240
 
-class Test(object):
+
+class Test:
     def demo01(self):
-        #test if mkfs works by verifying bytes
+        # test if mkfs works by verifying bytes
         print("Running Demo01")
         tfs_mkfs("BACKING_STORE.bin", default_size)
         f = open("BACKING_STORE.bin", "rb")
@@ -14,7 +15,7 @@ class Test(object):
         print("File Size is :", file_size, "bytes")
 
     def demo02(self):
-        #test mkfs by verifying that opening with 0 bytes still leaves 5 after demo01
+        # test mkfs by verifying that opening with 0 bytes still leaves 5 after demo01
         print("Running Demo02")
         tfs_mkfs("BACKING_STORE.bin", 0)
         f = open("BACKING_STORE.bin", "rb")
@@ -23,7 +24,7 @@ class Test(object):
         print("File Size is :", file_size, "bytes")
 
     def demo03(self):
-        #test open and closing of a file, with a readByte
+        # test open and closing of a file, with a readByte
         print("Running Demo03")
         tfs_mkfs("BACKING_STORE.bin", default_size)
         tfs_mount("BACKING_STORE.bin")
@@ -36,7 +37,7 @@ class Test(object):
         tfs_unmount()
 
     def demo04(self):
-        #test open and closing of a file, with a seek, then readByte
+        # test open and closing of a file, with a seek, then readByte
         print("Running Demo04")
         tfs_mkfs("BACKING_STORE.bin", default_size)
         tfs_mount("BACKING_STORE.bin")
@@ -68,10 +69,8 @@ class Test(object):
         elif error == -9:
             return "failed to find file"
 
-
-
     def demoError01(self):
-        #attempt to run without mounting (should return -4)
+        # attempt to run without mounting (should return -4)
         print("Running ErrorDemo01")
         tfs_mkfs("BACKING_STORE.bin", default_size)
         ret = tfs_openFile("test.txt")
@@ -79,14 +78,14 @@ class Test(object):
             print("You got error code: " + str(ret) + " - " + self.errorCases(ret))
 
     def demoError02(self):
-        #attempt to access backing store that doesn't exist with 0
+        # attempt to access backing store that doesn't exist with 0
         print("Running ErrorDemo02")
         ret = tfs_mkfs("BACKING_STORE_NOT_REAL.bin", 0)
         if ret < 0:
             print("You got error code: " + str(ret) + " - " + self.errorCases(ret))
 
     def demoError03(self):
-        #test open and closing of a file, with a readByte
+        # test open and closing of a file, with a readByte
         print("Running ErrorDemo03")
         tfs_mkfs("BACKING_STORE.bin", default_size)
         tfs_mount("BACKING_STORE.bin")
@@ -94,11 +93,7 @@ class Test(object):
         if ret < 0:
             print("You got error code: " + str(ret) + " - " + self.errorCases(ret))
 
-
-
-
-    #b'\xb8\xaa\x4b\x1e\x5e\x4a\x29\xab\x5f\x49'
-
+    # b'\xb8\xaa\x4b\x1e\x5e\x4a\x29\xab\x5f\x49'
 
 
 if __name__ == '__main__':

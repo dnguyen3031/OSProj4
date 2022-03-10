@@ -176,9 +176,7 @@ def create_inode(name):
     new_inode[0] = 2
     new_inode[1] = magic_num
     new_inode[2] = super_block[2]
-    new_inode[4] = 0
     new_inode = new_inode[:6] + name[:6].encode() + new_inode[14:]
-    new_inode[14] = 0
 
     super_block[2] = super_block[4]
     super_block[4] = readBlock(disk_num, super_block[4])[2]
@@ -232,7 +230,8 @@ def tfs_writeFile(FD, buffer, size):
 
     open_files[FD] = 0
     inode[4] = last_block
-    inode[14] = size  # todo: fix: caps file size at 256
+    encoded_size = str(size).encode("utf-8")
+    inode = inode[:44] + encoded_size + inode[44+len(encoded_size):]
 
     if writeBlock(disk_num, FD, inode) == -1:
         return -7
