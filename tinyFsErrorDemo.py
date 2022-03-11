@@ -27,3 +27,10 @@ def run_error_test(expectederror, test_name, function, *args):
 #
 
 run_error_test("-1", "accessing bad backing store", tfs_mkfs, "BACKING_STORE_NOT_REAL.bin", 0)
+
+tfs_unmount()
+run_error_test("-6", "failed to create new block", tfs_readdir, "NOT_REAL_FILE", "NOT_RELEVANT")
+
+tfs_mkfs('test_backing_store.bin', 10240)
+tfs_mount('test_backing_store.bin')
+run_error_test("-9", "accessing non-existent file", tfs_rename, "NOT_REAL_FILE", "NOT_RELEVANT")

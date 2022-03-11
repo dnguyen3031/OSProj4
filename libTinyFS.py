@@ -14,7 +14,7 @@ import math, time
 # -10 = eof
 
 BLOCKSIZE = 256
-magic_num = 6
+magic_num = 45
 disk_num = -1
 
 open_files = {
@@ -409,13 +409,13 @@ def tfs_rename(old_name, name):
     inode_location = super_block[2]
     inode = readBlock(disk_num, inode_location)
 
-    while inode_location != 0 and inode[6:14].decode("utf-8") != old_name:
+    while inode_location != 0 and inode[6:14].decode("utf-8") != old_name[:8]:
         inode_location = inode[2]
         inode = readBlock(disk_num, inode_location)
         if inode < 0:
             return -6
 
-    if inode[6:14].decode("utf-8") != old_name:
+    if inode[6:14].decode("utf-8") != old_name[:8]:
         return -9
 
     inode = inode[:6] + name[:8].encode("utf-8") + inode[14:]

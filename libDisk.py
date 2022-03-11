@@ -54,7 +54,7 @@ def readBlock(disk, bNum, block=None):
     global BLOCKSIZE
     global disks
 
-    if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk]['nBytes']: #handle eof?
+    if disk not in disks.keys() or (bNum+1)*BLOCKSIZE > disks[disk]['nBytes']:
         return -1
 
     return disks[disk]['contents'][bNum*BLOCKSIZE:(bNum + 1) * BLOCKSIZE]
