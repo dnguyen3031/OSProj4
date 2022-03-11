@@ -462,7 +462,6 @@ def tfs_stat_creation(FD):
     if inode == -1:
         return -6
 
-    dec = (inode[14:24])
     return int(inode[14:24].decode("utf-8"))
 
 def tfs_stat_write(FD):
@@ -480,7 +479,6 @@ def tfs_stat_write(FD):
     if inode == -1:
         return -6
 
-    dec = (inode[24:34])
     return int(inode[24:34].decode("utf-8"))
 
 def tfs_stat_read(FD):
@@ -498,7 +496,6 @@ def tfs_stat_read(FD):
     if inode == -1:
         return -6
 
-    dec = (inode[34:44])
     return int(inode[34:44].decode("utf-8"))
 
 # In your tinyFS.h file, you must also include the following definitions:
