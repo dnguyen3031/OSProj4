@@ -1,11 +1,12 @@
 from libTinyFS import *
+import time
 
 
 def run_test(test_name, function, *args):
     print('\nRunning: ' + test_name)
     result = function(*args)
     print('Result: ' + str(result))
-    if result != 0:
+    if 256 > result > 0:
         print('Decoded Result: ' + bytearray([result]).decode("utf-8"))
     return result
 
@@ -43,7 +44,7 @@ run_test('Close File', tfs_closeFile, FDTest)  # close file
 FDTest1 = run_test('Open FS', tfs_openFile, "test1.txt")  # open file
 
 # read file
-run_test('Close File', tfs_closeFile, FDTest1)  # close file
+run_test("Delete File", tfs_deleteFile, FDTest1)  # close file
 
 FDTest1 = run_test('Open FS', tfs_openFile, "test1.txt")  # open new file
 FDTest2 = run_test('Open FS', tfs_openFile, "test2.txt")  # open new file
@@ -58,13 +59,21 @@ FDTest3 = run_test('Open FS', tfs_openFile, "test3.txt")  # open file
 # read fd test 3 for timestamp check
 # write fd test 3 for timestamp check
 # display timestamps
-run_test('timestamp creation', tfs_stat_creation, FDTest2)
-run_test('timestamp creation', tfs_stat_read, FDTest2)
-run_test('timestamp creation', tfs_stat_write, FDTest2)
+# run_test('timestamp creation', tfs_stat_creation, FDTest3)
+# run_test('timestamp last read', tfs_stat_read, FDTest3)
+# run_test('timestamp last written', tfs_stat_write, FDTest3)
+
+
+time.sleep(2)
+sample_data = "This is some sample data to write in a virtual file!".encode("utf-8")
+run_test('Write Data to test.txt', tfs_writeFile, FDTest3, sample_data, len(sample_data))
+time.sleep(2)
+run_test('Read Byte', tfs_readByte, FDTest3)
+
 
 run_test('timestamp creation', tfs_stat_creation, FDTest3)
-run_test('timestamp creation', tfs_stat_read, FDTest3)
-run_test('timestamp creation', tfs_stat_write, FDTest3)
+run_test('timestamp last read', tfs_stat_read, FDTest3)
+run_test('timestamp last written', tfs_stat_write, FDTest3)
 # unmount fs
 run_test("Unmount FS", tfs_unmount)
 

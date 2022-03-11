@@ -316,6 +316,25 @@ def tfs_deleteFile(FD):
     new_free[1] = magic_num
     new_free[2] = first_free
 
+    ##
+    next_inode = super_block[2]
+    prev_inode = -1
+    prev_inode_num = -1
+    while next_inode != FD:
+        prev_inode_num = next_inode
+        prev_inode = readBlock(disk_num, next_inode)
+
+        if isinstance(prev_inode, int) and prev_inode < 0:
+            return -6
+        next_inode = prev_inode[2]
+
+    if prev_inode == -1:
+        super_block[2] = inode[2]
+    else:
+        prev_inode[2] = inode[2]
+        writeBlock(disk_num, prev_inode_num, prev_inode)
+    ##
+
     writeBlock(disk_num, FD, new_free)
 
     super_block[4] = FD
@@ -444,6 +463,7 @@ def tfs_stat_creation(FD):
     if inode == -1:
         return -6
 
+    dec = (inode[14:24])
     return int(inode[14:24].decode("utf-8"))
 
 def tfs_stat_write(FD):
@@ -461,6 +481,7 @@ def tfs_stat_write(FD):
     if inode == -1:
         return -6
 
+    dec = (inode[24:34])
     return int(inode[24:34].decode("utf-8"))
 
 def tfs_stat_read(FD):
@@ -478,6 +499,7 @@ def tfs_stat_read(FD):
     if inode == -1:
         return -6
 
+    dec = (inode[34:44])
     return int(inode[34:44].decode("utf-8"))
 
 # In your tinyFS.h file, you must also include the following definitions:
