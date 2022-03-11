@@ -418,7 +418,7 @@ def tfs_rename(old_name, name):
     if inode[6:14].decode("utf-8") != old_name:
         return -9
 
-    inode = inode[:6] + name[:6].encode() + inode[14:]
+    inode = inode[:6] + name[:8].encode("utf-8") + inode[14:]
 
     writeBlock(disk_num, inode_location, inode)
 
