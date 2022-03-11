@@ -38,7 +38,7 @@ print_whole_file('test.txt', FDTest)  # read whole file
 run_test('Rename File', tfs_rename, "test.txt", "newname.txt")  # rename file
 print_whole_file('test.txt', FDTest)  # read whole file
 
-run_test('Close File', tfs_closeFile, FDTest1)  # close file
+run_test('Close File', tfs_closeFile, FDTest)  # close file
 
 FDTest1 = run_test('Open FS', tfs_openFile, "test1.txt")  # open file
 
@@ -49,7 +49,7 @@ FDTest1 = run_test('Open FS', tfs_openFile, "test1.txt")  # open new file
 FDTest2 = run_test('Open FS', tfs_openFile, "test2.txt")  # open new file
 run_test("Read Directory", tfs_readdir)  # list files
 
-run_test("Delete File", tfs_deleteFile(FDTest1))  # delete file
+run_test("Delete File", tfs_deleteFile, FDTest1)  # delete file
 
 run_test("Read Directory", tfs_readdir)  # list files
 

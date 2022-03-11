@@ -178,7 +178,7 @@ def create_inode(name):
     new_inode[0] = 2
     new_inode[1] = magic_num
     new_inode[2] = super_block[2]
-    new_inode = new_inode[:6] + name[:6].encode("utf-8") + new_inode[14:]
+    new_inode = new_inode[:6] + name[:8].encode("utf-8") + new_inode[14:]
     new_inode = new_inode[:14] + timestamp + new_inode[24:]
     new_inode = new_inode[:24] + timestamp + new_inode[34:]
     new_inode = new_inode[:34] + timestamp + new_inode[44:]
@@ -322,6 +322,7 @@ def tfs_deleteFile(FD):
     writeBlock(disk_num, 0, super_block)
 
     del open_files[FD]
+    return 0
 
 
 # reads one byte from the file and copies it to buffer, using the current file pointer location and incrementing it
@@ -384,7 +385,7 @@ def tfs_rename(old_name, name):
 
     super_block = readBlock(disk_num, 0)
 
-    if super_block < 0:
+    if isinstance(super_block, int) and super_block < 0:
         return -6
 
     inode_location = super_block[2]
@@ -414,14 +415,14 @@ def tfs_readdir():
 
     super_block = readBlock(disk_num, 0)
 
-    if super_block < 0:
+    if isinstance(super_block, int) and super_block < 0:
         return -6
 
     next_inode = super_block[2]
 
     while next_inode != 0:
         inode = readBlock(disk_num, next_inode)
-        if inode < 0:
+        if isinstance(inode, int) and inode < 0:
             return -6
         next_inode = inode[2]
         print(inode[6:14].decode("utf-8"))
