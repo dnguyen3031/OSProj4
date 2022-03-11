@@ -11,6 +11,7 @@ import math, time
 # -7 = failed to write block
 # -8 = failed to create new block
 # -9 = failed to find file
+# -10 = eof
 
 BLOCKSIZE = 256
 magic_num = 45
@@ -75,7 +76,6 @@ def create_super_block(file_num):
     out = bytearray(BLOCKSIZE)
     out[0] = 1
     out[1] = magic_num
-    out[4] = 0
 
     writeBlock(file_num, 0, out)
 
@@ -144,7 +144,7 @@ def tfs_openFile(name):
 
     super_block = readBlock(disk_num, 0)
 
-    if super_block < 0:
+    if super_block is int:
         return -6
 
     inode_location = super_block[2]
@@ -153,7 +153,7 @@ def tfs_openFile(name):
     while inode_location != 0 and inode[6:14].decode("utf-8") != name:
         inode_location = inode[2]
         inode = readBlock(disk_num, inode_location)
-        if inode < 0:
+        if inode is int:
             return -6
 
     if inode[6:14].decode("utf-8") != name:
@@ -282,7 +282,7 @@ def create_new_extent_block(data, last_block):
     if writeBlock(disk_num, 0, super_block) == -1:
         return -7
 
-    if writeBlock(disk_num, next_free, bytearray([3, magic_num, last_block, 0] + data)) == -1:
+    if writeBlock(disk_num, next_free, bytearray([3, magic_num, last_block, 0] + list(data))) == -1:
         return -7
     return next_free
 
@@ -345,12 +345,12 @@ def tfs_readByte(FD, buffer=None):
     writeBlock(disk_num, FD, inode)
 
     target_block = open_files[FD] // (BLOCKSIZE - 4)
-    target_offset = open_files[FD] % (BLOCKSIZE - 4)
+    target_offset = open_files[FD] % (BLOCKSIZE - 4) + 4
 
     block = readBlock(disk_num, inode[4])
     for i in range(target_block):
         if block == -1:
-            return -1
+            return -10
         block = readBlock(disk_num, block[2])
 
     open_files[FD] += 1

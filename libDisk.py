@@ -38,13 +38,9 @@ def openDisk(filename, nBytes):
         else:
             return -1 #error of file
     else:
-        if not os.path.exists(filename):
-            f = open(filename, "w+")
-            b_array = bytearray(nBytes)
-            f.close()
-        else:
-            b_array = getByteArray(filename, nBytes)
-        disks[len(disks)] = {'file_name': filename, 'nBytes': nBytes, 'contents': b_array}
+        with open(filename, "wb") as f:
+            f.write(bytearray(nBytes))
+        disks[len(disks)] = {'file_name': filename, 'nBytes': nBytes, 'contents': bytearray(nBytes)}
         return len(disks)-1
 
 
@@ -76,8 +72,8 @@ def writeBlock(disk, bNum, block):
     if disk not in disks.keys() or (bNum + 1) * BLOCKSIZE > disks[disk]['nBytes']:
         return -1
 
-    disks[disk]['contents'] = disks[disk]['contents'][:bNum*BLOCKSIZE] + block + disks[disk]['contents'][(bNum+1)*BLOCKSIZE:]
-    #pad block
+    disks[disk]['contents'] = disks[disk]['contents'][:bNum*BLOCKSIZE] + (block+bytearray(disks[disk]['nBytes']))[:BLOCKSIZE] + disks[disk]['contents'][(bNum+1)*BLOCKSIZE:]
+
     return 0
 
 
