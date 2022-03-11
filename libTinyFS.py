@@ -90,7 +90,7 @@ def free_block(file_num, i):
     new_free = bytearray(BLOCKSIZE)
     new_free[0] = 4
     new_free[1] = magic_num
-    new_free[4] = first_free
+    new_free[2] = first_free
 
     writeBlock(file_num, i, new_free)
 
@@ -184,7 +184,8 @@ def create_inode(name):
     new_inode = new_inode[:34] + timestamp + new_inode[44:]
 
     super_block[2] = super_block[4]
-    super_block[4] = readBlock(disk_num, super_block[4])[2]
+    temp = readBlock(disk_num, super_block[4])
+    super_block[4] = temp[2]
 
     writeBlock(disk_num, 0, super_block)
     writeBlock(disk_num, new_inode_location, new_inode)
