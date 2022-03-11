@@ -1,4 +1,5 @@
 from libTinyFS import *
+from libDisk import *
 import time
 
 
@@ -32,6 +33,8 @@ run_error_test("-1", "accessing bad backing store", tfs_mkfs, "BACKING_STORE_NOT
 tfs_mkfs('test_backing_store.bin', 10240)
 tfs_mount('test_backing_store.bin')
 run_error_test('-2', 'bad mount', tfs_mount, 'test_backing_store.bin')  # make f
+tfs_unmount()
 
 #3
+openDisk("BACKING_STORE_UNFORMATTED.bin", 0)
 run_error_test('-3', 'bad format for mount', tfs_mount, "BACKING_STORE_UNFORMATTED.bin")
