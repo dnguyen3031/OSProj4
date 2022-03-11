@@ -20,7 +20,7 @@ def print_whole_file(filename, FD):
 
 # Test Behavior #
 run_test('Make FS', tfs_mkfs, 'test_backing_store.bin', 10240)  # make fs
-run_test('Mount FS', tfs_mount, "BACKING_STORE.bin")  # mount fs
+run_test('Mount FS', tfs_mount, "test_backing_store.bin")  # mount fs
 FDTest = run_test('Open FS', tfs_openFile, "test.txt")  # open file
 
 # write file

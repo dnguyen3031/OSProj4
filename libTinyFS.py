@@ -14,7 +14,7 @@ import math, time
 # -10 = eof
 
 BLOCKSIZE = 256
-magic_num = 45
+magic_num = 6
 disk_num = -1
 
 open_files = {
@@ -224,7 +224,8 @@ def tfs_writeFile(FD, buffer, size):
     if inode == -1:
         return -6
 
-    free_extent_blocks(inode[4])
+    if inode[4] != 0:
+        free_extent_blocks(inode[4])
 
     blocks_needed = math.ceil(size / (BLOCKSIZE - 4))
     last_block = create_new_extent_block(buffer[(blocks_needed - 1) * (BLOCKSIZE - 4):], 0)  # ned to pad
