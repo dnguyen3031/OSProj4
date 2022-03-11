@@ -1,0 +1,19 @@
+Group Members: Daniel Nguyen, Paul Cox
+CPE 453 - Operating Systems
+3/10/22
+
+An explanation of how well your TinyFS implementation works:
+We think it works relatively well. It uses a linked-list based implementation for handling i-nodes, extent blocks, and free nodes, and
+while this implementation makes it relatively hard to adapt into a directory based file system without multiple superblocks, the efficiency
+and organization of the data is well done.
+
+An explanation of which additional functionality areas you have chosen and how 
+you have shown that it works:
+We chose to add renaming files/directory listing, as well as timestamping. In order to demo this, we simply showed that we were renaming files,
+listing directory before and after deletion of a file, and doing read and writes to a file before listing the timestamps in order to show proper
+time logging
+
+Any limitations or bugs your file system has:
+Mentioned in the demo video, but we are limited to 256 blocks because of how we chose to address blocks with one byte. While we have error messages
+and handling, we also were unable to test it, due to certain errors being stress testing and more unreasonable edge cases (maxing out file blocks and
+having data so large it overfills).
