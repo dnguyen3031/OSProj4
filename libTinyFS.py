@@ -183,8 +183,8 @@ def create_inode(name):
     new_inode = new_inode[:24] + timestamp + new_inode[34:]
     new_inode = new_inode[:34] + timestamp + new_inode[44:]
 
-    super_block[2] = super_block[4]
-    temp = readBlock(disk_num, super_block[4])
+    super_block[2] = new_inode_location
+    temp = readBlock(disk_num, new_inode_location)
     super_block[4] = temp[2]
 
     writeBlock(disk_num, 0, super_block)
@@ -305,7 +305,8 @@ def tfs_deleteFile(FD):
     if inode == -1:
         return -6
 
-    free_extent_blocks(inode[4])
+    if inode[4] != 0:
+        free_extent_blocks(inode[4])
 
     super_block = readBlock(disk_num, 0)
 
@@ -316,24 +317,7 @@ def tfs_deleteFile(FD):
     new_free[1] = magic_num
     new_free[2] = first_free
 
-    ##
-    next_inode = super_block[2]
-    prev_inode = -1
-    prev_inode_num = -1
-    while next_inode != FD:
-        prev_inode_num = next_inode
-        prev_inode = readBlock(disk_num, next_inode)
-
-        if isinstance(prev_inode, int) and prev_inode < 0:
-            return -6
-        next_inode = prev_inode[2]
-
-    if prev_inode == -1:
-        super_block[2] = inode[2]
-    else:
-        prev_inode[2] = inode[2]
-        writeBlock(disk_num, prev_inode_num, prev_inode)
-    ##
+    super_block[2] = inode[2]
 
     writeBlock(disk_num, FD, new_free)
 
