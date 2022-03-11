@@ -1,5 +1,4 @@
 from libTinyFS import *
-from libDisk import *
 import time
 
 
@@ -25,21 +24,24 @@ def run_error_test(expectederror, test_name, function, *args):
 
 
 # todo: start error checking
-#
 
 run_error_test("-1", "accessing bad backing store", tfs_mkfs, "BACKING_STORE_NOT_REAL.bin", 0)
 
-#2
 tfs_mkfs('test_backing_store.bin', 10240)
 tfs_mount('test_backing_store.bin')
-run_error_test('-2', 'bad mount', tfs_mount, 'test_backing_store.bin')  # make f
+run_error_test('-2', 'bad mount', tfs_mount, 'test_backing_store.bin')
 tfs_unmount()
 
-#3
 openDisk("BACKING_STORE_UNFORMATTED.bin", 0)
 run_error_test('-3', 'bad format for mount', tfs_mount, "BACKING_STORE_UNFORMATTED.bin")
+
+run_error_test("-4", "no mounted file system", tfs_unmount)
+
+tfs_mount('test_backing_store.bin')
+run_error_test("-5", "attempted to close non-open file", tfs_closeFile, 18)
+
 tfs_unmount()
-run_error_test("-6", "failed to create new block", tfs_readdir, "NOT_REAL_FILE", "NOT_RELEVANT")
+run_error_test("-6", "failed to create new block", tfs_readdir)
 
 tfs_mkfs('test_backing_store.bin', 10240)
 tfs_mount('test_backing_store.bin')
