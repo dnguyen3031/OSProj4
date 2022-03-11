@@ -113,6 +113,7 @@ def tfs_mount(filename):
     if disk_num < 0:
         return -1
 
+    check = readBlock(disk_num, 0)[1]
     if not readBlock(disk_num, 0)[1] == magic_num:
         closeDisk(disk_num)
         disk_num = -1
