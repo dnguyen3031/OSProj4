@@ -38,3 +38,9 @@ tfs_unmount()
 #3
 openDisk("BACKING_STORE_UNFORMATTED.bin", 0)
 run_error_test('-3', 'bad format for mount', tfs_mount, "BACKING_STORE_UNFORMATTED.bin")
+tfs_unmount()
+run_error_test("-6", "failed to create new block", tfs_readdir, "NOT_REAL_FILE", "NOT_RELEVANT")
+
+tfs_mkfs('test_backing_store.bin', 10240)
+tfs_mount('test_backing_store.bin')
+run_error_test("-9", "accessing non-existent file", tfs_rename, "NOT_REAL_FILE", "NOT_RELEVANT")
