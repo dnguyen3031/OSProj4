@@ -10,6 +10,13 @@ def run_test(test_name, function, *args):
         print('Decoded Result: ' + bytearray([result]).decode("utf-8"))
     return result
 
+def run_error_test(expectederror, test_name, function, *args):
+    print('\nRunning Error on: ' + test_name)
+    result = function(*args)
+    print('Result: ' + str(result))
+    if result < 0:
+        print("You have correctly returned an error! Expected: " + expectederror + " Error returned: " + str(result))
+    return result
 
 def print_whole_file(filename, FD):
     out = []
@@ -76,6 +83,3 @@ run_test('timestamp last read', tfs_stat_read, FDTest3)
 run_test('timestamp last written', tfs_stat_write, FDTest3)
 # unmount fs
 run_test("Unmount FS", tfs_unmount)
-
-# todo: start error checking
-#
