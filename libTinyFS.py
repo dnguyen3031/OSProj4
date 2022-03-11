@@ -16,6 +16,7 @@ import math, time
 BLOCKSIZE = 256
 magic_num = 45
 disk_num = -1
+DEFAULT_DISK_SIZE = 10240
 
 open_files = {
     # file's inode block location: read point
@@ -54,7 +55,7 @@ open_files = {
 # emulated disk library to open the specified file, and upon success, format the file to be mountable. This includes
 # initializing all data to 0x00, setting magic numbers, initializing and writing the superblock and inodes,
 # etc. Must return a specified success/error code.
-def tfs_mkfs(filename, nBytes):
+def tfs_mkfs(filename, nBytes=DEFAULT_DISK_SIZE):
     global BLOCKSIZE
 
     file_num = openDisk(filename, nBytes)
@@ -113,7 +114,6 @@ def tfs_mount(filename):
     if disk_num < 0:
         return -1
 
-    check = readBlock(disk_num, 0)[1]
     if not readBlock(disk_num, 0)[1] == magic_num:
         closeDisk(disk_num)
         disk_num = -1
@@ -185,8 +185,7 @@ def create_inode(name):
     new_inode = new_inode[:34] + timestamp + new_inode[44:]
 
     super_block[2] = super_block[4]
-    temp = readBlock(disk_num, super_block[4])
-    super_block[4] = temp[2]
+    super_block[4] = readBlock(disk_num, super_block[4])[2]
 
     writeBlock(disk_num, 0, super_block)
     writeBlock(disk_num, new_inode_location, new_inode)
@@ -230,7 +229,7 @@ def tfs_writeFile(FD, buffer, size):
         free_extent_blocks(inode[4])
 
     blocks_needed = math.ceil(size / (BLOCKSIZE - 4))
-    last_block = create_new_extent_block(buffer[(blocks_needed - 1) * (BLOCKSIZE - 4):], 0)  # ned to pad
+    last_block = create_new_extent_block(buffer[(blocks_needed - 1) * (BLOCKSIZE - 4):], 0)
     for i in range(blocks_needed - 2, -1, -1):
         last_block = create_new_extent_block(buffer[i * (BLOCKSIZE - 4):(i + 1) * (BLOCKSIZE - 4)], last_block)
         if last_block < 0:
